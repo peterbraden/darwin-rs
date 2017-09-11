@@ -15,8 +15,6 @@
 
 use std::time::Instant;
 
-use jobsteal::make_pool;
-
 use individual::{Individual, IndividualWrapper};
 use population::Population;
 
@@ -108,7 +106,6 @@ impl<T: Individual + Send + Sync + Clone> Simulation<T> {
         }
 
         let mut iteration_counter = 0;
-        let mut pool = make_pool(self.num_of_threads).unwrap();
 
         // Initialize:
         // - The fittest individual.
@@ -127,10 +124,9 @@ impl<T: Individual + Send + Sync + Clone> Simulation<T> {
         match self.type_of_simulation {
             SimulationType::EndIteration(end_iteration) => {
                 for _ in 0..end_iteration {
-                    pool.scope(|scope|
-                        for population in &mut self.habitat {
-                            scope.submit(move || { population.run_body() });
-                        });
+                    for population in &mut self.habitat {
+                        population.run_body();
+                    }
 
                     self.update_results();
                 };
@@ -140,10 +136,9 @@ impl<T: Individual + Send + Sync + Clone> Simulation<T> {
             SimulationType::EndFactor(end_factor) => {
                 loop {
                     iteration_counter += 1;
-                    pool.scope(|scope|
-                        for population in &mut self.habitat {
-                            scope.submit(move || { population.run_body() });
-                        });
+                    for population in &mut self.habitat {
+                        population.run_body();
+                    }
 
                     self.update_results();
 
@@ -157,10 +152,9 @@ impl<T: Individual + Send + Sync + Clone> Simulation<T> {
             SimulationType::EndFitness(end_fitness) => {
                 loop {
                     iteration_counter += 1;
-                    pool.scope(|scope|
-                        for population in &mut self.habitat {
-                            scope.submit(move || { population.run_body() });
-                        });
+                    for population in &mut self.habitat {
+                        population.run_body();
+                    }
 
                     self.update_results();
 
